@@ -9,7 +9,7 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY nginx.conf /etc/nginx/conf.d/
 
 # Copy the content of our website
-COPY website/ /usr/share/nginx/html/
+COPY index.html/ /usr/share/nginx/html/
 
 # Expose port 80
 EXPOSE 80
