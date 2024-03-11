@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'asia-southeast1/devops-415704/docker-privatehub/vaniheroesweb:latest'
-        // Replace with your Artifact Registry URL and image name
+        IMAGE_NAME = 'asia-southeast1-docker.pkg.dev/devops-415704/docker-privatehub/vaniheroesweb:latest'
+        // Corrected Artifact Registry URL and image name
     }
 
     stages {
@@ -22,7 +22,6 @@ pipeline {
                         sh 'gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS'
                         sh 'gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet'
                         sh "docker push ${IMAGE_NAME}"
-                        }
                     }
                 }
             }
@@ -31,12 +30,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // List of your server IPs or hostnames
                     def servers = ['34.142.163.44']
-                    // Loop through each server to update the application
                     for (def server : servers) {
                         echo "Deploying to ${server}"
-                        // SSH into the server, pull the latest Docker image, and restart the container
                         sshagent(['server-ssh-key']) {
                             sh """
                                 ssh user@${server} '
@@ -47,11 +43,10 @@ pipeline {
                                 '
                             """
                         }
-                        // Optionally, add a delay to allow for manual verification, or implement health checks before proceeding to the next server
-                        sleep(30)
+                        sleep(30) // Delay for verification or health checks
                     }
                 }
             }
         }
     }
-
+}
