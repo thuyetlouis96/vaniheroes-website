@@ -15,47 +15,45 @@ pipeline {
             }
         }
 
-         stage('Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
                 script {
                     // Authenticate with GCP
                     withCredentials([file(credentialsId: 'jenkins-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                         sh 'gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS'
                         // Push the image to Artifact Registry
-                        docker.withRegistry('https://asia-southeast1-docker.pkg.dev', 'gcloud'){
+                        docker.withRegistry('https://asia-southeast1-docker.pkg.dev', 'gcloud') {
                             docker.image("${IMAGE_NAME}").push()
+                        }
                     }
                 }
             }
         }
 
-       stage('Deploy') {
-    steps {
-        script {
-            // List of your server IPs or hostnames
-            def servers = ['34.142.163.44']
-            // Loop through each server to update the application
-            for (def server : servers) {
-                echo "Deploying to ${server}"
-                // SSH into the server, pull the latest Docker image, and restart the container
-                sshagent(['server-ssh-key']) {
-                    sh """
-                        ssh user@${server} '
-                            docker pull ${IMAGE_NAME}&& 
-                            docker stop vaniheroes-website|| true && 
-                            docker rm vaniheroes-website || true && 
-                            docker run -d --name vaniheroes-website -p 80:80 ${IMAGE_NAME}
-                        '
-                    """
+        stage('Deploy') {
+            steps {
+                script {
+                    // List of your server IPs or hostnames
+                    def servers = ['34.142.163.44']
+                    // Loop through each server to update the application
+                    for (def server : servers) {
+                        echo "Deploying to ${server}"
+                        // SSH into the server, pull the latest Docker image, and restart the container
+                        sshagent(['server-ssh-key']) {
+                            sh """
+                                ssh user@${server} '
+                                    docker pull ${IMAGE_NAME} && 
+                                    docker stop vaniheroes-website || true && 
+                                    docker rm vaniheroes-website || true && 
+                                    docker run -d --name vaniheroes-website -p 80:80 ${IMAGE_NAME}
+                                '
+                            """
+                        }
+                        // Optionally, add a delay to allow for manual verification, or implement health checks before proceeding to the next server
+                        sleep(30)
+                    }
                 }
-                // Optionally, add a delay to allow for manual verification, or implement health checks before proceeding to the next server
-                sleep(30)
             }
         }
     }
 }
-
-            }
-        }
-    }
-
