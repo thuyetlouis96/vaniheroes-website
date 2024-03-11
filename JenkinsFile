@@ -18,14 +18,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Using the GCP JSON key as a secret text
-                    withCredentials([string(credentialsId: 'gcp-jenkins-access', variable: 'GCP_JSON')]) {
-                        sh '''
-                            echo $GCP_JSON > gcp-jenkins-access.json
-                            gcloud auth activate-service-account --key-file=gcp-jenkins-access.json
-                            // Your commands here
-                            rm -f gcp-key.json
-                        '''
+                    / Use the uploaded service account key to authenticate
+                    withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                        sh 'gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS'
+                        // Now you can run gcloud commands or Docker commands for GCP
 
                     }
                 }
