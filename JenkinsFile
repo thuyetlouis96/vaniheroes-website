@@ -18,15 +18,15 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                   // Injecting the GCP JSON key directly from Jenkins secret text
+                    // Using the GCP JSON key as a secret text
                     withCredentials([string(credentialsId: 'gcp-jenkins-access', variable: 'GCP_JSON')]) {
-                        // Temporarily create a JSON key file from the secret text
-                        sh "echo '$GCP_JSON' > /tmp/gcp-jenkins-access.json"
-                        sh "gcloud auth activate-service-account --key-file=/tmp/gcp-jenkins-access.json"
-                        sh "gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet"
-                        sh "docker push ${IMAGE_NAME}"
-                        // Clean up the temporary file
-                        sh "rm -f /tmp/gcp-jenkins-access.json"
+                        sh '''
+                            echo $GCP_JSON > gcp-jenkins-access.json
+                            gcloud auth activate-service-account --key-file=gcp-jenkins-access.json
+                            // Your commands here
+                            rm -f gcp-key.json
+                        '''
+
                     }
                 }
             }
